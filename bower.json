@@ -1,0 +1,17 @@
+{
+  "name": "sqrl-playground",
+  "version": "0.0.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+      "uheprng": "https://www.grc.com/js/uheprng.js",
+      "curve25519": "http://www.flownet.com/ron/code/curve25519.js",
+      "fast-djbec": "http://www.flownet.com/ron/code/fast-djbec.js",
+      "crypto-js": "~3.1.2"
+  }
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SQRL playground</title>
+    </head>
+    <body>
+        <h1>SQRL playground</h1>
+        <p>That page will launch video, take a picture, hash it using sha3, then feed that data into <a href="https://www.grc.com/otg/uheprng.htm">GRC's Ultra-High Entropy Pseudo-Random Number Generator</a>, then display the master key right below.
+        <p id="masterkey"></p>
+        <section>
+            <video id="videoRandomSource"></video>
+            <canvas id="canvasRandomSource"></canvas>
+        </scription>
+        <script src="bower_components/uheprng/index.js"></script>
+        <script src="bower_components/crypto-js/build/rollups/sha3.js"></script>
+        <script>
+            var Camera = (function() {
+
+                var hasGetUserMedia = function() {
+                    return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+                    navigator.mozGetUserMedia || navigator.msGetUserMedia);
+                }
+
+                var capture = function(callback) {
+                    if (hasGetUserMedia()) {
+                        var video = document.querySelector('#videoRandomSource');
+                        var canvas = document.querySelector('#canvasRandomSource');
+                        var width = 640;
+                        var height = 480;
+                        var stream;
+
+                        navigator.getMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+                        navigator.getMedia( { video: true, audio: false }, function(s) {
+                            stream = s;
+                            if (navigator.mozGetUserMedia) {
+                                video.mozSrcObject = stream;
+                            } else {
+                                var vendorURL = window.URL || window.webkitURL;
+                                video.src = vendorURL.createObjectURL(stream);
+                            }
+                            video.play();
+                        }, function(err) {
+                            console.log("An error occured! " + err);
+                        });
+
+                        var captureVideo = function() {
+                            canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+                            stream.stop();
+                            var data = canvas.toDataURL('image/png');
+                            var hash = CryptoJS.SHA3(data, { outputLength: 512 });
+                            callback(hash.toString(CryptoJS.enc.Hex));
+                        }
+
+                        video.addEventListener('canplay', function(){
+                            canvas.width = width;
+                            canvas.height = height;
+                            setTimeout(captureVideo, 5000);
+                        }, false);
+                    }
+                }
+                return {
+                    'hasGetUserMedia': hasGetUserMedia,
+                    'capture': capture
+                }
+            })();
+
+
+            var SQRL = (function() {
+
+                var getRandomSeed = function(moreEntropy) {
+                    var prng = uheprng();
+                    prng.initState();
+                    prng.addEntropy(moreEntropy);
+                    
+                    for (var s = '', i = 0; i < 64; i++ ) {
+                        var r = prng(16);
+                        var hex = (+r).toString(16).toUpperCase();
+                        s += hex; 
+                    }
+                    return s;
+                }
+
+                return {
+                    'getRandomSeed': getRandomSeed
+                }
+            })();
+
+            if(Camera.hasGetUserMedia) {
+                Camera.capture(function(sha3OfVideoImage) {
+                    document.querySelector('#masterkey').innerHTML = SQRL.getRandomSeed(sha3OfVideoImage);
+                });
+            }
+        </script>
+    </body>
+</html>
+
