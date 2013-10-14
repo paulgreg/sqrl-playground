@@ -47,7 +47,7 @@
                         var captureVideo = function() {
                             canvas.getContext('2d').drawImage(video, 0, 0, width, height);
                             stream.stop();
-                            var data = canvas.toDataURL('image/png');
+                            var data = canvas.toDataURL('image/bmp');
                             var hash = CryptoJS.SHA3(data, { outputLength: 512 });
                             callback(hash.toString(CryptoJS.enc.Hex));
                         }
