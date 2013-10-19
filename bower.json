@@ -9,9 +9,10 @@
     "tests"
   ],
   "dependencies": {
-      "uheprng": "https://www.grc.com/js/uheprng.js",
-      "curve25519": "http://www.flownet.com/ron/code/curve25519.js",
-      "fast-djbec": "http://www.flownet.com/ron/code/fast-djbec.js",
-      "crypto-js": "~3.1.2"
+    "uheprng": "https://www.grc.com/js/uheprng.js",
+    "curve25519": "http://www.flownet.com/ron/code/curve25519.js",
+    "fast-djbec": "http://www.flownet.com/ron/code/fast-djbec.js",
+    "crypto-js": "~3.1.2",
+    "q": "~0.9.7"
   }
 }
