@@ -42,6 +42,7 @@
                             video.play();
                         }, function(err) {
                             console.log("An error occured! " + err);
+                            callback();
                         });
 
                         var captureVideo = function() {
@@ -86,10 +87,31 @@
                 }
             })();
 
+            var randomness = [];
+
+            randomness.push(Math.random());
+
+            if (window.crypto.getRandomValues) {
+                var array = new Uint32Array(16);
+                window.crypto.getRandomValues(array);
+                for (var i = 0; i < array.length; i++) {
+                    randomness.push(array[i]);
+                }
+            }
+
+            var generateSeed = function() {
+                document.querySelector('#masterkey').innerHTML = SQRL.getRandomSeed(randomness);
+            };
+
             if(Camera.hasGetUserMedia) {
                 Camera.capture(function(sha3OfVideoImage) {
-                    document.querySelector('#masterkey').innerHTML = SQRL.getRandomSeed(sha3OfVideoImage);
+                    if (sha3OfVideoImage) {
+                        randomness.push(sha3OfVideoImage);
+                    }
+                    generateSeed();
                 });
+            } else {
+                generateSeed();
             }
         </script>
     </body>
