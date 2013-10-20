@@ -1,113 +1,40 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
         <title>SQRL playground</title>
+        <style>
+            #masterKey { background: white; color: black; width: 640px; border: 1px solid gray; }
+            #imageUsedToGetEntropy canvas { width: 120px; }
+        </style>
     </head>
     <body>
         <h1>SQRL playground</h1>
         <p>That page will launch video, take a picture, hash it using sha3, then feed that data into <a href="https://www.grc.com/otg/uheprng.htm">GRC's Ultra-High Entropy Pseudo-Random Number Generator</a>, then display the master key right below.
-        <p id="masterkey"></p>
+
+        <h2>Master key generation</h2>
+        <label for="masterKey">Master key : <input type="text" id="masterKey" disabled></label>
+        <p id="imageUsedToGetEntropy" style="display: none;">
+        Image used to get entropy :<br>
+        </p>
+
+        <script src="js/camera.js"></script>
+        <script src="js/sqrl.js"></script>
         <script src="bower_components/uheprng/index.js"></script>
         <script src="bower_components/crypto-js/build/rollups/sha3.js"></script>
         <script>
-            var Camera = (function() {
-
-                var hasGetUserMedia = function() {
-                    return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
-                    navigator.mozGetUserMedia || navigator.msGetUserMedia);
-                }
-
-                var capture = function(callback) {
-                    if (hasGetUserMedia()) {
-                        var video = document.createElement('video');
-                        var canvas = document.createElement('canvas');
-                        var width = 640;
-                        var height = 480;
-                        var stream;
-
-                        navigator.getMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-
-                        navigator.getMedia( { video: true, audio: false }, function(s) {
-                            stream = s;
-                            if (navigator.mozGetUserMedia) {
-                                video.mozSrcObject = stream;
-                            } else {
-                                var vendorURL = window.URL || window.webkitURL;
-                                video.src = vendorURL.createObjectURL(stream);
-                            }
-                            video.play();
-                        }, function(err) {
-                            console.log("An error occured! " + err);
-                            callback();
-                        });
-
-                        var captureVideo = function() {
-                            canvas.getContext('2d').drawImage(video, 0, 0, width, height);
-                            stream.stop();
-                            var data = canvas.toDataURL('image/bmp');
-                            var hash = CryptoJS.SHA3(data, { outputLength: 512 });
-                            callback(hash.toString(CryptoJS.enc.Hex));
-                        }
-
-                        video.addEventListener('canplay', function(){
-                            canvas.width = width;
-                            canvas.height = height;
-                            setTimeout(captureVideo, 2500);
-                        }, false);
-                    }
-                }
-                return {
-                    'hasGetUserMedia': hasGetUserMedia,
-                    'capture': capture
-                }
-            })();
-
-
-            var SQRL = (function() {
-
-                var getRandomSeed = function(moreEntropy) {
-                    var prng = uheprng();
-                    prng.initState();
-                    prng.addEntropy(moreEntropy);
-                    
-                    for (var s = '', i = 0; i < 64; i++ ) {
-                        var r = prng(16);
-                        var hex = (+r).toString(16).toUpperCase();
-                        s += hex; 
-                    }
-                    return s;
-                }
-
-                return {
-                    'getRandomSeed': getRandomSeed
-                }
-            })();
-
-            var randomness = [];
-
-            randomness.push(Math.random());
-
-            if (window.crypto.getRandomValues) {
-                var array = new Uint32Array(16);
-                window.crypto.getRandomValues(array);
-                for (var i = 0; i < array.length; i++) {
-                    randomness.push(array[i]);
-                }
-            }
-
-            var generateSeed = function() {
-                document.querySelector('#masterkey').innerHTML = SQRL.getRandomSeed(randomness);
+            var generateMasterKey = function(moreEntropy) {
+                document.querySelector('#masterKey').value = SQRL.generateMasterKey(moreEntropy);
             };
 
-            if(Camera.hasGetUserMedia) {
-                Camera.capture(function(sha3OfVideoImage) {
-                    if (sha3OfVideoImage) {
-                        randomness.push(sha3OfVideoImage);
-                    }
-                    generateSeed();
+            if(Camera.isCameraAvailable) {
+                var imageUsedToGetEntropy = document.querySelector('#imageUsedToGetEntropy')
+                Camera.getEntropyFromCamera(imageUsedToGetEntropy, function(sha3OfVideoImage) {
+                    imageUsedToGetEntropy.style.display = 'block';
+                    generateMasterKey(sha3OfVideoImage);
                 });
             } else {
-                generateSeed();
+                generateMasterKey();
             }
         </script>
     </body>
