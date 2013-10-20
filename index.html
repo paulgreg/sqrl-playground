@@ -7,10 +7,6 @@
         <h1>SQRL playground</h1>
         <p>That page will launch video, take a picture, hash it using sha3, then feed that data into <a href="https://www.grc.com/otg/uheprng.htm">GRC's Ultra-High Entropy Pseudo-Random Number Generator</a>, then display the master key right below.
         <p id="masterkey"></p>
-        <section>
-            <video id="videoRandomSource"></video>
-            <canvas id="canvasRandomSource"></canvas>
-        </section>
         <script src="bower_components/uheprng/index.js"></script>
         <script src="bower_components/crypto-js/build/rollups/sha3.js"></script>
         <script>
@@ -23,8 +19,8 @@
 
                 var capture = function(callback) {
                     if (hasGetUserMedia()) {
-                        var video = document.querySelector('#videoRandomSource');
-                        var canvas = document.querySelector('#canvasRandomSource');
+                        var video = document.createElement('video');
+                        var canvas = document.createElement('canvas');
                         var width = 640;
                         var height = 480;
                         var stream;
